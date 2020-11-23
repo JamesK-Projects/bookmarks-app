@@ -3,9 +3,9 @@ import { Route } from 'react-router-dom';
 import AddBookmark from './AddBookmark/AddBookmark';
 import BookmarkList from './BookmarkList/BookmarkList';
 import BookmarksContext from './BookmarksContext';
-import Rating from './Rating/Rating';
 import Nav from './Nav/Nav';
 import config from './config';
+import EditBookmark from './EditBookmark/EditBookmark'
 import './App.css';
 
 class App extends Component {
@@ -28,13 +28,15 @@ class App extends Component {
   }
 
   deleteBookmark = bookmarkId => {
-    const newBookmarks = this.state.bookmarks.filter(bm => 
+    const newBookmarks = this.state.bookmarks.filter(bm =>
       bm.id !== bookmarkId
     )
     this.setState({
       bookmarks: newBookmarks
     })
   }
+
+  updateBookmark = () => {};
 
   componentDidMount() {
     fetch(config.API_ENDPOINT, {
@@ -46,12 +48,15 @@ class App extends Component {
     })
       .then(res => {
         if (!res.ok) {
-          throw new Error(res.status)
+          return res.json().then(error => Promise.reject(error))
         }
         return res.json()
       })
       .then(this.setBookmarks)
-      .catch(error => this.setState({ error }))
+      .catch(error => {
+        console.error(error)
+        this.setState({ error })
+      })
   }
 
   render() {
@@ -59,12 +64,12 @@ class App extends Component {
       bookmarks: this.state.bookmarks,
       addBookmark: this.addBookmark,
       deleteBookmark: this.deleteBookmark,
+      updateBookmark: this.updateBookmark,
     }
     return (
       <main className='App'>
         <h1>Bookmarks!</h1>
-        <Rating />
-        <BookmarksContext.Provider value={contextValue} >
+        <BookmarksContext.Provider value={contextValue}>
           <Nav />
           <div className='content' aria-live='polite'>
             <Route
@@ -75,6 +80,10 @@ class App extends Component {
               exact
               path='/'
               component={BookmarkList}
+            />
+            <Route
+              path='/edit/:bookmarkId'
+              component={EditBookmark}
             />
           </div>
         </BookmarksContext.Provider>
